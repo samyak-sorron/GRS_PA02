@@ -28,17 +28,17 @@ typedef struct {
 
 void generate_random_string(char *str, int length) {
     for (int i = 0; i < length; i++) {
-        str[i] = 'A' + (rand() % 26);
+        str[i]= 'A' + (rand() % 26);
     }
     str[length] = '\0';
 }
 
 void *client_thread_func(void *arg) {
     ThreadArgs *args = (ThreadArgs *)arg;
-    int sock;
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in server_addr;
 
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if (sock < 0) {
         perror("Socket creation failed");
         return NULL;
     }
@@ -53,23 +53,32 @@ void *client_thread_func(void *arg) {
         return NULL;
     }
 
-    // --- DATA PREPARATION (A2) ---
-    int chunk_size = args->msg_size / 8;
-    int remainder = args->msg_size % 8;
+    // DATA PREPARATION ---
+    int chunk_size= args->msg_size/8;
+    int remainder= args->msg_size%8;
     Message msg;
     
     for(int i=0; i<8; i++) {
-        int current_chunk = (i == 7) ? (chunk_size + remainder) : chunk_size;
+        int current_chunk;
+        if(i==7){
+            current_chunk=chunk_size + remainder;
+        }
+        else    current_chunk=chunk_size;
         msg.fields[i] = malloc(current_chunk);
         generate_random_string(msg.fields[i], current_chunk - 1);
     }
 
-    // A2: Setup IO Vector (No extra buffer)
+    // Setup IO Vector
     struct iovec iov[8];
     struct msghdr msg_header = {0};
 
     for(int i=0; i<8; i++) {
-        int current_chunk = (i == 7) ? (chunk_size + remainder) : chunk_size;
+        int current_chunk;
+        if(i==7)
+            current_chunk=chunk_size + remainder;
+        
+        else current_chunk=chunk_size;
+
         iov[i].iov_base = msg.fields[i];
         iov[i].iov_len = current_chunk;
     }
@@ -90,7 +99,6 @@ void *client_thread_func(void *arg) {
 
         clock_gettime(CLOCK_MONOTONIC, &start);
 
-        // A2: sendmsg reads directly from the 8 buffers
         ssize_t sent = sendmsg(sock, &msg_header, 0);
 
         clock_gettime(CLOCK_MONOTONIC, &end);
@@ -99,15 +107,16 @@ void *client_thread_func(void *arg) {
 
         total_bytes_sent += sent;
         total_calls++;
-        total_latency_ns += (get_nanos(&end) - get_nanos(&start));
+        int k=get_nanos(&end) - get_nanos(&start);
+        total_latency_ns += k;
     }
 
     if (total_calls > 0) {
-        args->result_throughput = (total_bytes_sent * 8.0) / (args->duration * 1e9);
-        args->result_latency = (double)total_latency_ns / total_calls / 1000.0;
+        args->result_throughput = (total_bytes_sent * 8.0)/(args->duration * 1e9);
+        args->result_latency = (double) total_latency_ns/total_calls / 1000.0;
     } else {
-        args->result_throughput = 0;
-        args->result_latency = 0;
+        args->result_throughput= 0;
+        args->result_latency= 0;
     }
 
     for(int i=0; i<8; i++) free(msg.fields[i]);
@@ -118,7 +127,7 @@ void *client_thread_func(void *arg) {
 int main(int argc, char *argv[]) {
     if (argc != 6) {
         printf("Usage: %s <IP> <Port> <Time> <Threads> <MsgSize>\n", argv[0]);
-        return -1;
+        return 0;
     }
 
     int num_threads = atoi(argv[4]);
@@ -142,6 +151,6 @@ int main(int argc, char *argv[]) {
         total_latency_sum += thread_args[i].result_latency;
     }
 
-    printf("%.6f,%.6f\n", total_throughput, total_latency_sum / num_threads);
+    printf("%.6f,%.6f\n", total_throughput, total_latency_sum/num_threads);
     return 0;
 }

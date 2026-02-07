@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#Name - "Samyak Kr Sharma"
 #ROLL_NUM - "MT25039" 
 
 
@@ -16,11 +15,11 @@ THREADS=$2
 SIZE=$3
 
 CLIENT_BIN="./client_${VER}"
-SERVER_IP="10.0.0.1"
+SERVER_IP="10.8.5.10"
 PORT=8080
 DURATION=5
 
-# Ensure binaries exist
+
 if [ ! -f $CLIENT_BIN ]; then
     echo "Error: Binary $CLIENT_BIN not found. Compile first."
     exit 1
@@ -30,19 +29,18 @@ echo "=========================================="
 echo " PROFILING: Version=$VER | Threads=$THREADS | Size=$SIZE"
 echo "=========================================="
 
-# 1. Start Server
+
 sudo ip netns exec server_ns ./server $PORT > /dev/null 2>&1 &
 SERVER_PID=$!
 sleep 1
 
-# 2. Run Perf
-# We print to STDOUT here so you can read it immediately
+# Run Perf
 echo "Running Perf..."
 sudo ip netns exec client_ns perf stat \
     -e cycles,instructions,cache-misses,L1-dcache-load-misses,LLC-load-misses,cs \
     $CLIENT_BIN $SERVER_IP $PORT $DURATION $THREADS $SIZE
 
-# 3. Cleanup
+# Cleanup
 sudo kill $SERVER_PID
 wait $SERVER_PID 2>/dev/null
 

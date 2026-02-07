@@ -1,9 +1,9 @@
-# started on Fri Feb  6 21:55:16 2026
+# started on Sat Feb  7 16:12:33 2026
 
-23882314821,,cpu_atom/cycles/,1853025972,25.00,,
-27865107563,,cpu_core/cycles/,5532930195,74.00,,
+59322323306,,cpu_atom/cycles/,3607219752,19.00,,
+72223129725,,cpu_core/cycles/,14439460045,80.00,,
 <not supported>,,cpu_atom/L1-dcache-load-misses/,0,100.00,,
-98037148,,cpu_core/L1-dcache-load-misses/,5532930195,74.00,,
-2905,,cpu_atom/LLC-load-misses/,1853025972,25.00,,
-425328,,cpu_core/LLC-load-misses/,5532930195,74.00,,
-838015,,cs,7385956167,100.00,,
+974502878,,cpu_core/L1-dcache-load-misses/,14439460045,80.00,,
+8424,,cpu_atom/LLC-load-misses/,3607219752,19.00,,
+1814721,,cpu_core/LLC-load-misses/,14439460045,80.00,,
+853172,,cs,18046679797,100.00,,

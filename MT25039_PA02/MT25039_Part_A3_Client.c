@@ -50,21 +50,20 @@ void recv_completions(int sock) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) return; 
             return;
         }
-        // Assuming success if we got a notification
     }
 }
 
 void *client_thread_func(void *arg) {
     ThreadArgs *args = (ThreadArgs *)arg;
-    int sock;
+    int sock= socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in server_addr;
 
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if (sock  < 0) {
         perror("Socket failed");
         return NULL;
     }
 
-    // A3: Enable Zero Copy
+    // Enable Zero Copy
     int one = 1;
     if (setsockopt(sock, SOL_SOCKET, SO_ZEROCOPY, &one, sizeof(one))) {
         perror("SO_ZEROCOPY failed");
@@ -81,12 +80,17 @@ void *client_thread_func(void *arg) {
         return NULL;
     }
 
-    int chunk_size = args->msg_size / 8;
-    int remainder = args->msg_size % 8;
+    int chunk_size = args->msg_size/8;
+    int remainder = args->msg_size%8;
     Message msg;
     
-    for(int i=0; i<8; i++) {
-        int current_chunk = (i == 7) ? (chunk_size + remainder) : chunk_size;
+    for(int i=0;i<8;i++) {
+        int current_chunk;
+        if(i==7)
+            current_chunk=chunk_size + remainder;
+        
+        else current_chunk=chunk_size;
+
         msg.fields[i] = malloc(current_chunk);
         generate_random_string(msg.fields[i], current_chunk - 1);
     }
@@ -94,17 +98,22 @@ void *client_thread_func(void *arg) {
     struct iovec iov[8];
     struct msghdr msg_header = {0};
 
-    for(int i=0; i<8; i++) {
-        int current_chunk = (i == 7) ? (chunk_size + remainder) : chunk_size;
+    for(int i=0;i<8;i++) {
+        int current_chunk;
+        if(i==7)
+            current_chunk=chunk_size + remainder;
+        
+        else current_chunk=chunk_size;
+
         iov[i].iov_base = msg.fields[i];
         iov[i].iov_len = current_chunk;
     }
     msg_header.msg_iov = iov;
     msg_header.msg_iovlen = 8;
 
-    long total_bytes_sent = 0;
-    long total_latency_ns = 0;
-    long total_calls = 0;
+    long total_bytes_sent= 0;
+    long total_latency_ns= 0;
+    long total_calls= 0;
     struct timespec start, end, exp_start, now;
 
     clock_gettime(CLOCK_MONOTONIC, &exp_start);
@@ -115,7 +124,7 @@ void *client_thread_func(void *arg) {
 
         clock_gettime(CLOCK_MONOTONIC, &start);
 
-        // A3: Send with MSG_ZEROCOPY
+        // Send with MSG_ZEROCOPY
         ssize_t sent = sendmsg(sock, &msg_header, MSG_ZEROCOPY);
 
         clock_gettime(CLOCK_MONOTONIC, &end);
@@ -128,23 +137,24 @@ void *client_thread_func(void *arg) {
             break;
         }
 
-        total_bytes_sent += sent;
+        total_bytes_sent+= sent;
         total_calls++;
-        total_latency_ns += (get_nanos(&end) - get_nanos(&start));
+        int k=get_nanos(&end) - get_nanos(&start);
+        total_latency_ns+= k;
 
-        // A3: Must drain error queue
+        // Must drain error queue
         recv_completions(sock);
     }
 
     if (total_calls > 0) {
-        args->result_throughput = (total_bytes_sent * 8.0) / (args->duration * 1e9);
-        args->result_latency = (double)total_latency_ns / total_calls / 1000.0;
+        args->result_throughput = (total_bytes_sent * 8.0)/(args->duration * 1e9);
+        args->result_latency = (double) total_latency_ns/total_calls/1000.0;
     } else {
-        args->result_throughput = 0;
-        args->result_latency = 0;
+        args->result_throughput= 0;
+        args->result_latency= 0;
     }
 
-    for(int i=0; i<8; i++) free(msg.fields[i]);
+    for(int i=0;i<8;i++)    free(msg.fields[i]);
     close(sock);
     return NULL;
 }
@@ -176,6 +186,6 @@ int main(int argc, char *argv[]) {
         total_latency_sum += thread_args[i].result_latency;
     }
 
-    printf("%.6f,%.6f\n", total_throughput, total_latency_sum / num_threads);
+    printf("%.6f,%.6f\n", total_throughput, total_latency_sum/num_threads);
     return 0;
 }

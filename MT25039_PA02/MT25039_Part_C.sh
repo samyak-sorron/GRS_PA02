@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# --- CONFIGURATION ---
-ROLL_NUM="MT25039" 
-RESULTS_FILE="${ROLL_NUM}_results.csv"
+#ROLL_NUM - "MT25039" 
+
+RESULTS_FILE="MT25039_results.csv"
 DURATION=5         
-SERVER_IP="10.0.0.1"
+SERVER_IP="10.8.5.10"
 PORT=8080
 
 # Experiment Parameters
@@ -18,13 +18,17 @@ echo "Compiling programs..."
 make clean > /dev/null 2>&1
 make > /dev/null 2>&1
 
-# If make fails or isn't used, fallback to manual gcc
 if [ ! -f "client_A1" ]; then
-    gcc ${ROLL_NUM}_Part_A1_Server.c -o server -pthread
-    gcc ${ROLL_NUM}_Part_A1_Client.c -o client_A1 -pthread
-    gcc ${ROLL_NUM}_Part_A2_Client.c -o client_A2 -pthread
-    gcc ${ROLL_NUM}_Part_A3_Client.c -o client_A3 -pthread
+    gcc MT25039_Part_A1_Server.c -o server -pthread
+    gcc MT25039_Part_A1_Client.c -o client_A1 -pthread
+    gcc MT25039_Part_A2_Client.c -o client_A2 -pthread
+    gcc MT25039_Part_A3_Client.c -o client_A3 -pthread
 fi
+
+
+rm -f app_out.txt perf_out.txt
+touch app_out.txt perf_out.txt
+chmod +x app_out.txt perf_out.txt
 
 # --- CSV HEADER ---
 echo "Version,MsgSize,Threads,Throughput_Gbps,Latency_us,Cycles,L1_Misses,LLC_Misses,Context_Switches" > $RESULTS_FILE
@@ -47,10 +51,10 @@ for VER in "${VERSIONS[@]}"; do
             # 2. Run Client wrapped in PERF
             # We use -e events specific to cpu_core to avoid the 'atom' confusion if possible,
             # but standard names work if we grep intelligently.
-            sudo ip netns exec client_ns perf stat \
+            sudo sh -c "ip netns exec client_ns perf stat \
                 -e cycles,L1-dcache-load-misses,LLC-load-misses,cs \
                 -x, -o perf_out.txt \
-                $CLIENT_BIN $SERVER_IP $PORT $DURATION $THREAD $SIZE > app_out.txt
+                $CLIENT_BIN $SERVER_IP $PORT $DURATION $THREAD $SIZE > app_out.txt"
 
             # 3. Kill Server
             sudo kill $SERVER_PID 2>/dev/null

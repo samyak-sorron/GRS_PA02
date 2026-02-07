@@ -1,5 +1,4 @@
 #!/bin/bash
-#Name - "Samyak Kr Sharma"
 #ROLL_NUM - "MT25039" 
 
 # --- CONFIGURATION ---
@@ -7,15 +6,21 @@ SERVER_BIN="./server"
 CLIENT_A1="./client_A1"
 CLIENT_A2="./client_A2"
 CLIENT_A3="./client_A3"
-IP="10.0.0.1"
+IP="10.8.5.10"
 PORT=8080
 
-# 1. Compile
-echo "--- Compiling ---"
-gcc MT25039_Part_A1_Server.c -o server -pthread
-gcc MT25039_Part_A1_Client.c -o client_A1 -pthread
-gcc MT25039_Part_A2_Client.c -o client_A2 -pthread
-gcc MT25039_Part_A3_Client.c -o client_A3 -pthread
+if [ ! -f "client_A1" ]; then
+    gcc MT25039_Part_A1_Server.c -o server -pthread
+    gcc MT25039_Part_A1_Client.c -o client_A1 -pthread
+    gcc MT25039_Part_A2_Client.c -o client_A2 -pthread
+    gcc MT25039_Part_A3_Client.c -o client_A3 -pthread
+fi
+
+
+rm -f app_out.txt perf_out.txt
+touch app_out.txt perf_out.txt
+chmod +x app_out.txt perf_out.txt
+
 
 if [ ! -f $SERVER_BIN ]; then echo "Compilation Failed!"; exit 1; fi
 

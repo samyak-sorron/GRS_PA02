@@ -1,32 +1,33 @@
+# Roll No.- MT25039
+
 CC = gcc
-CFLAGS = -pthread
-ROLL_NUM = MT25039
+CFLAGS = -pthread -std=c99 -D_POSIX_C_SOURCE=200112L
 
 # Target Binaries
-SERVER = server
-CLIENT_A1 = client_A1
-CLIENT_A2 = client_A2
-CLIENT_A3 = client_A3
+SER = server
+A1 = client_A1
+A2 = client_A2
+A3 = client_A3
 
 # Source Files
-SERVER_SRC = $(ROLL_NUM)_Part_A1_Server.c
-CLIENT_A1_SRC = $(ROLL_NUM)_Part_A1_Client.c
-CLIENT_A2_SRC = $(ROLL_NUM)_Part_A2_Client.c
-CLIENT_A3_SRC = $(ROLL_NUM)_Part_A3_Client.c
+SERVER_SRC = MT25039_Part_A1_Server.c
+A1_SRC = MT25039_Part_A1_Client.c
+A2_SRC = MT25039_Part_A2_Client.c
+A3_SRC = MT25039_Part_A3_Client.c
 
-all: $(SERVER) $(CLIENT_A1) $(CLIENT_A2) $(CLIENT_A3)
+all: $(SER) $(A1) $(A2) $(A3)
 
-$(SERVER): $(SERVER_SRC)
-    $(CC) $(SERVER_SRC) -o $(SERVER) $(CFLAGS)
+$(SER): $(SERVER_SRC)
+	$(CC) $(SERVER_SRC) -o $(SER) $(CFLAGS)
 
-$(CLIENT_A1): $(CLIENT_A1_SRC)
-    $(CC) $(CLIENT_A1_SRC) -o $(CLIENT_A1) $(CFLAGS)
+$(A1): $(A1_SRC)
+	$(CC) $(A1_SRC) -o $(A1) $(CFLAGS)
 
-$(CLIENT_A2): $(CLIENT_A2_SRC)
-    $(CC) $(CLIENT_A2_SRC) -o $(CLIENT_A2) $(CFLAGS)
+$(A2): $(A2_SRC)
+	$(CC) $(A2_SRC) -o $(A2) $(CFLAGS)
 
-$(CLIENT_A3): $(CLIENT_A3_SRC)
-    $(CC) $(CLIENT_A3_SRC) -o $(CLIENT_A3) $(CFLAGS)
+$(A3): $(A3_SRC)
+	$(CC) $(A3_SRC) -o $(A3) $(CFLAGS)
 
 clean:
-    rm -f $(SERVER) $(CLIENT_A1) $(CLIENT_A2) $(CLIENT_A3)
+	rm -f $(SER) $(A1) $(A2) $(A3)
